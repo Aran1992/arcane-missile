@@ -30,8 +30,8 @@ interface Enemy {
 // ======================== 游戏状态 ========================
 const ctx: Record<string, any> = {
   hp: 5, maxHP: 5,
-  fireRate: 2, volley: 1, burst: 1, spread: 0, pierce: 0,
-  bDmg: 10, bSpeed: 500, bSize: 6,
+  fireRate: 2, volley: 1, burst: 1, spread: 0.15, pierce: 0,
+  bDmg: 10, bSpeed: 600, bSize: 10,
   split: false, splitN: 0, splitDmg: 0.5, splitSz: 0.6,
   explode: false, explR: 60, explDmgR: 0.5,
   cd: 0, picked: new Set<string>(),
@@ -197,7 +197,7 @@ let bossSpawned = false;
       bullets.forEach(b => { b.alive = false; gameLayer.removeChild(b.g); });
       enemies.forEach(e => { e.alive = false; gameLayer.removeChild(e.g); });
       bullets = []; enemies = [];
-      Object.assign(ctx, { hp: 5, maxHP: 5, fireRate: 2, volley: 1, burst: 1, spread: 0, pierce: 0, bDmg: 10, bSpeed: 500, bSize: 6, split: false, splitN: 0, splitDmg: .5, splitSz: .6, explode: false, explR: 60, explDmgR: .5, cd: 0, picked: new Set<string>(), time: 0, waveInt: 3, waveCnt: 2, hpMult: 1, lvl: 1, exp: 0, needExp: EXP_BASE, kills: 0 });
+      Object.assign(ctx, { hp: 5, maxHP: 5, fireRate: 2, volley: 1, burst: 1, spread: 0.15, pierce: 0, bDmg: 10, bSpeed: 600, bSize: 10, split: false, splitN: 0, splitDmg: .5, splitSz: .6, explode: false, explR: 60, explDmgR: .5, cd: 0, picked: new Set<string>(), time: 0, waveInt: 3, waveCnt: 2, hpMult: 1, lvl: 1, exp: 0, needExp: EXP_BASE, kills: 0 });
       gameOver = false; paused = false; waveTimer = 2; bossSpawned = false;
       overContainer.visible = false;
       updateHP(); updateEXP(); lvlTxt.text = 'Lv.1'; infoTxt.text = '';
