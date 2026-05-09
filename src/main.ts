@@ -25,6 +25,7 @@ interface Enemy {
   hp: number; maxHP: number; speed: number; dmg: number;
   size: number; score: number; color: number; type: string;
   g: Graphics; alive: boolean; phase: number;
+  hitTimer: number;
 }
 
 // ======================== 游戏状态 ========================
@@ -242,14 +243,14 @@ let bossSpawned = false;
     const hp = Math.ceil(t.hp * ctx.hpMult);
     const g = new Graphics().circle(0, 0, t.size).fill({ color: t.color });
     g.position.set(x, -30); gameLayer.addChild(g);
-    enemies.push({ id: nextId++, x, y: -30, hp, maxHP: hp, speed: t.speed, dmg: t.dmg, size: t.size, score: t.score, color: t.color, type: t.id, g, alive: true, phase: Math.random() * Math.PI * 2 });
+    enemies.push({ id: nextId++, x, y: -30, hp, maxHP: hp, speed: t.speed, dmg: t.dmg, size: t.size, score: t.score, color: t.color, type: t.id, g, alive: true, phase: Math.random() * Math.PI * 2, hitTimer: 0 });
   }
 
   function spawnBoss() {
     const hp = 500 * ctx.hpMult;
     const g = new Graphics().rect(-20, -20, 40, 40).fill({ color: 0x8e44ad }).stroke({ color: 0xffffff, width: 2 });
     g.position.set(GAME_W / 2, -50); gameLayer.addChild(g);
-    enemies.push({ id: nextId++, x: GAME_W / 2, y: -50, hp, maxHP: hp, speed: 25, dmg: 15, size: 40, score: 200, color: 0x8e44ad, type: 'boss', g, alive: true, phase: 0 });
+    enemies.push({ id: nextId++, x: GAME_W / 2, y: -50, hp, maxHP: hp, speed: 25, dmg: 15, size: 40, score: 200, color: 0x8e44ad, type: 'boss', g, alive: true, phase: 0, hitTimer: 0 });
   }
 
   function spawnExplosion(x: number, y: number, r: number, dmg: number) {
@@ -296,18 +297,18 @@ let bossSpawned = false;
     ctx.time += dt;
     infoTxt.text = `时间 ${Math.floor(ctx.time)}s  击杀 ${ctx.kills}`;
 
-    // 射击
+    // 射击 - burst轮次，每轮volley颗子弹
     shootCD -= dt;
     if (shootCD <= 0) {
       shootCD = 1 / ctx.fireRate;
-      for (let v = 0; v < ctx.volley; v++) {
-        const ao = ctx.volley > 1 ? (v / (ctx.volley - 1) - 0.5) * ctx.spread : 0;
-        spawnBullet(ao);
-      }
-      if (ctx.burst > 1) {
-        for (let b = 1; b < ctx.burst; b++) {
-          setTimeout(() => spawnBullet(0), b * 80);
-        }
+      for (let b = 0; b < ctx.burst; b++) {
+        setTimeout(() => {
+          if (gameOver || paused) return;
+          for (let v = 0; v < ctx.volley; v++) {
+            const ao = ctx.volley > 1 ? (v / (ctx.volley - 1) - 0.5) * ctx.spread : 0;
+            spawnBullet(ao);
+          }
+        }, b * 80);
       }
     }
 
@@ -331,13 +332,19 @@ let bossSpawned = false;
     }
     if (!bossSpawned && ctx.time >= BOSS_SPAWN) { bossSpawned = true; spawnBoss(); }
 
-    // 敌人更新
+    // 敌人更新 + 受击闪红
     for (const e of enemies) {
       if (!e.alive) continue;
       let sx = 0;
       if (e.type === 'bat' || e.type === 'bomber') { e.phase += dt * 3; sx = Math.sin(e.phase) * 40; }
       e.x += sx * dt; e.y += e.speed * dt;
       e.g.position.set(e.x, e.y);
+      if (e.hitTimer > 0) {
+        e.hitTimer -= dt;
+        e.g.tint = 0xff4444;
+      } else if (e.g.tint !== 0xffffff) {
+        e.g.tint = 0xffffff;
+      }
       if (e.y > GAME_H + 50) { e.alive = false; gameLayer.removeChild(e.g); }
     }
     enemies = enemies.filter(e => e.alive);
@@ -349,13 +356,18 @@ let bossSpawned = false;
         if (!e.alive) continue;
         if (Math.hypot(b.x - e.x, b.y - e.y) < b.size + e.size) {
           e.hp -= b.damage;
-          // 先判断击杀（必须在break之前）
+          e.hitTimer = 0.12; // 受击闪红
           if (e.hp <= 0) { killEnemy(e); }
           if (b.explode) spawnExplosion(b.x, b.y, b.explR, b.explDmg);
           if (b.split && b.splitN > 0) spawnSplit(b, e.x, e.y);
-          if (b.pierce > 0) b.pierce--;
-          else { b.alive = false; gameLayer.removeChild(b.g); break; }
-          break;
+          if (b.pierce > 0) {
+            b.pierce--;
+            // 穿透：继续前进，再检查下一个敌人
+          } else {
+            b.alive = false;
+            gameLayer.removeChild(b.g);
+            break;
+          }
         }
       }
     }
