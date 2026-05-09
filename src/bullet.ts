@@ -1,4 +1,4 @@
-import { Graphics } from 'pixi.js';
+import { Graphics, Text, TextStyle } from 'pixi.js';
 import type { Bullet } from './types';
 import { GAME_W, GAME_H, PLAYER_Y, bullets, enemies, ctx, genId, gameLayer, app } from './state';
 import { killEnemy, nearestEnemy } from './enemy';
@@ -97,6 +97,7 @@ export function spawnExplosion(x: number, y: number, r: number, dmg: number) {
     if (!e.alive) continue;
     if (Math.hypot(x - e.x, y - e.y) <= r) {
       e.hp -= dmg;
+      showDamageNumber(e.x, e.y, dmg, 'explosion');
       if (e.hp <= 0) killEnemy(e);
     }
   }
@@ -107,6 +108,33 @@ export function spawnExplosion(x: number, y: number, r: number, dmg: number) {
     if (life <= 0) {
       app!.ticker.remove(ticker);
       if (gameLayer && ring.parent) gameLayer.removeChild(ring);
+    }
+  };
+  app.ticker.add(ticker);
+}
+
+export function showDamageNumber(x: number, y: number, dmg: number, type: 'bullet' | 'explosion') {
+  if (!gameLayer || !app) return;
+  const ft = new Text({
+    text: `-${dmg}`,
+    style: new TextStyle({
+      fontSize: type === 'explosion' ? 16 : 13,
+      fill: type === 'explosion' ? '#e67e22' : '#f1c40f',
+      fontFamily: 'monospace',
+      fontWeight: type === 'explosion' ? 'bold' : 'normal',
+    }),
+  });
+  ft.anchor.set(0.5);
+  ft.position.set(x, y - 6);
+  gameLayer.addChild(ft);
+  let ttl = 0.6;
+  const ticker = () => {
+    ttl -= 0.016;
+    ft.alpha = ttl / 0.6;
+    ft.y -= 1.2;
+    if (ttl <= 0) {
+      app!.ticker.remove(ticker);
+      if (gameLayer && ft.parent) gameLayer.removeChild(ft);
     }
   };
   app.ticker.add(ticker);

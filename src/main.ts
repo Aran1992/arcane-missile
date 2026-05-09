@@ -22,7 +22,7 @@ import {
   setWaveTimer,
   setBossSpawned,
 } from './state';
-import { spawnBullet, updateBullets, spawnExplosion, spawnSplit } from './bullet';
+import { spawnBullet, updateBullets, spawnExplosion, spawnSplit, showDamageNumber } from './bullet';
 import { spawnEnemy, spawnBoss, updateEnemies, pickEnemyType, killEnemy } from './enemy';
 import { createUI, updateHP, updateEXP, showUpgrade, showGameOver, lvlTxt, infoTxt } from './ui';
 
@@ -107,6 +107,7 @@ import { createUI, updateHP, updateEXP, showUpgrade, showGameOver, lvlTxt, infoT
           b.hitIds.add(e.id);
           e.hp -= b.damage;
           e.hitTimer = 0.12;
+          showDamageNumber(e.x, e.y, b.damage, 'bullet');
           if (e.hp <= 0) killEnemy(e);
           if (b.explode) spawnExplosion(b.x, b.y, b.explR, b.explDmg);
           if (b.split && b.splitN > 0) spawnSplit(b, e.x, e.y);

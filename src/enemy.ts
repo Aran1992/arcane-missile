@@ -1,6 +1,6 @@
-import { Graphics, Text, TextStyle } from 'pixi.js';
+import { Graphics } from 'pixi.js';
 import type { Enemy, EnemyType } from './types';
-import { GAME_W, GAME_H, enemies, ctx, genId, gameLayer, app } from './state';
+import { GAME_W, GAME_H, enemies, ctx, genId, gameLayer } from './state';
 import { updateEXP } from './ui';
 
 export const ENEMY_TYPES: EnemyType[] = [
@@ -83,26 +83,6 @@ export function killEnemy(e: Enemy) {
   if (gameLayer && e.g.parent) gameLayer.removeChild(e.g);
   ctx.kills++;
   ctx.exp += e.score;
-
-  // 飘分文字
-  const ft = new Text({
-    text: `+${e.score}`,
-    style: new TextStyle({ fontSize: 13, fill: '#ff0', fontFamily: 'monospace' }),
-  });
-  ft.anchor.set(0.5);
-  ft.position.set(e.x, e.y);
-  if (gameLayer) gameLayer.addChild(ft);
-  let ttl = 0.6;
-  const ticker = () => {
-    ttl -= 0.016;
-    ft.alpha = ttl / 0.6;
-    ft.y -= 1;
-    if (ttl <= 0) {
-      if (app) app.ticker.remove(ticker);
-      if (gameLayer && ft.parent) gameLayer.removeChild(ft);
-    }
-  };
-  if (app) app.ticker.add(ticker);
   updateEXP();
 }
 
