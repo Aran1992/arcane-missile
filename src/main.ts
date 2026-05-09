@@ -101,7 +101,9 @@ import { createUI, updateHP, updateEXP, showUpgrade, showGameOver, lvlTxt, infoT
       if (!b.alive) continue;
       for (const e of enemies) {
         if (!e.alive) continue;
+        if (b.hitIds.has(e.id)) continue;
         if (Math.hypot(b.x - e.x, b.y - e.y) < b.size + e.size) {
+          b.hitIds.add(e.id);
           e.hp -= b.damage;
           e.hitTimer = 0.12;
           if (e.hp <= 0) killEnemy(e);

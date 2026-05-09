@@ -21,6 +21,7 @@ export interface Bullet {
   explDmg: number;
   g: Graphics;
   alive: boolean;
+  hitIds: Set<number>;
 }
 
 export interface Enemy {

@@ -46,6 +46,7 @@ export function spawnBullet(angleOff: number) {
     explDmg: ctx.bDmg * ctx.explDmgR,
     g,
     alive: true,
+    hitIds: new Set(),
   });
 }
 
@@ -79,6 +80,7 @@ export function spawnSplit(b: Bullet, hx: number, hy: number) {
       explDmg: b.explDmg * b.splitDmg,
       g,
       alive: true,
+      hitIds: new Set(),
     });
   }
 }
