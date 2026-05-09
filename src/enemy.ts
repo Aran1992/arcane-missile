@@ -1,33 +1,45 @@
 import { Graphics } from 'pixi.js';
 import type { Enemy, EnemyType } from './types';
 import { GAME_W, GAME_H, enemies, ctx, genId, gameLayer } from './state';
+import { getConfig, hexToNum } from './configLoader';
 import { updateEXP } from './ui';
 
-export const ENEMY_TYPES: EnemyType[] = [
-  { id: 'slime', hp: 20, speed: 60, dmg: 5, size: 14, score: 10, color: 0xe74c3c },
-  { id: 'bat', hp: 12, speed: 120, dmg: 3, size: 10, score: 8, color: 0x9b59b6 },
-  { id: 'knight', hp: 80, speed: 35, dmg: 10, size: 20, score: 25, color: 0x2c3e50 },
-  { id: 'bomber', hp: 30, speed: 90, dmg: 20, size: 14, score: 15, color: 0xe67e22 },
-];
+let _enemyTypes: EnemyType[] | null = null;
+
+function enemyTypes(): EnemyType[] {
+  if (_enemyTypes) return _enemyTypes;
+  const cfg = getConfig();
+  _enemyTypes = cfg.enemy.types.map((t) => ({
+    id: t.id,
+    hp: t.hp,
+    speed: t.speed,
+    dmg: t.dmg,
+    size: t.size,
+    score: t.score,
+    color: hexToNum(t.color),
+  }));
+  return _enemyTypes;
+}
 
 export function pickEnemyType(time: number): number {
-  if (time < 30) return 0;
-  if (time < 60) return Math.random() < 0.6 ? 0 : 1;
-  if (time < 90) {
-    const r = Math.random();
-    if (r < 0.4) return 0;
-    if (r < 0.7) return 1;
-    return 2;
+  const cfg = getConfig();
+  const phases = cfg.enemy.difficulty;
+  let phase = phases[phases.length - 1];
+  for (const p of phases) {
+    if (p.until === null || time < p.until) { phase = p; break; }
   }
   const r = Math.random();
-  if (r < 0.3) return 0;
-  if (r < 0.5) return 1;
-  if (r < 0.75) return 2;
-  return 3;
+  let cum = 0;
+  for (let i = 0; i < phase.weights.length; i++) {
+    cum += phase.weights[i];
+    if (r < cum) return Math.min(i, enemyTypes().length - 1);
+  }
+  return enemyTypes().length - 1;
 }
 
 export function spawnEnemy(ti: number) {
-  const t = ENEMY_TYPES[ti];
+  const t = enemyTypes()[ti];
+  if (!t) return;
   const x = 40 + Math.random() * (GAME_W - 80);
   const hp = Math.ceil(t.hp * ctx.hpMult);
   if (!gameLayer) return;
@@ -35,46 +47,29 @@ export function spawnEnemy(ti: number) {
   g.position.set(x, -30);
   gameLayer.addChild(g);
   enemies.push({
-    id: genId(),
-    x,
-    y: -30,
-    hp,
-    maxHP: hp,
-    speed: t.speed,
-    dmg: t.dmg,
-    size: t.size,
-    score: t.score,
-    color: t.color,
-    type: t.id,
-    g,
-    alive: true,
-    phase: Math.random() * Math.PI * 2,
-    hitTimer: 0,
+    id: genId(), x, y: -30, hp, maxHP: hp,
+    speed: t.speed, dmg: t.dmg, size: t.size, score: t.score,
+    color: t.color, type: t.id, g, alive: true,
+    phase: Math.random() * Math.PI * 2, hitTimer: 0,
   });
 }
 
 export function spawnBoss() {
-  const hp = 500 * ctx.hpMult;
+  const cfg = getConfig();
+  const hp = cfg.enemy.bossHP * ctx.hpMult;
   if (!gameLayer) return;
-  const g = new Graphics().rect(-20, -20, 40, 40).fill({ color: 0x8e44ad }).stroke({ color: 0xffffff, width: 2 });
+  const g = new Graphics()
+    .rect(-20, -20, 40, 40)
+    .fill({ color: 0x8e44ad })
+    .stroke({ color: 0xffffff, width: 2 });
   g.position.set(GAME_W / 2, -50);
   gameLayer.addChild(g);
   enemies.push({
-    id: genId(),
-    x: GAME_W / 2,
-    y: -50,
-    hp,
-    maxHP: hp,
-    speed: 25,
-    dmg: 15,
-    size: 40,
-    score: 200,
-    color: 0x8e44ad,
-    type: 'boss',
-    g,
-    alive: true,
-    phase: 0,
-    hitTimer: 0,
+    id: genId(), x: GAME_W / 2, y: -50, hp, maxHP: hp,
+    speed: cfg.enemy.bossSpeed, dmg: cfg.enemy.bossDmg,
+    size: cfg.enemy.bossSize, score: cfg.enemy.bossScore,
+    color: 0x8e44ad, type: 'boss', g, alive: true,
+    phase: 0, hitTimer: 0,
   });
 }
 
@@ -87,15 +82,11 @@ export function killEnemy(e: Enemy) {
 }
 
 export function nearestEnemy(ex: number, ey: number): Enemy | null {
-  let best: Enemy | null = null,
-    bestD = Infinity;
+  let best: Enemy | null = null, bestD = Infinity;
   for (const e of enemies) {
     if (!e.alive) continue;
     const d = Math.hypot(e.x - ex, e.y - ey);
-    if (d < bestD) {
-      bestD = d;
-      best = e;
-    }
+    if (d < bestD) { bestD = d; best = e; }
   }
   return best;
 }
