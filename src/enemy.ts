@@ -56,10 +56,7 @@ export function spawnEnemy(ti: number) {
 export function spawnBoss() {
   const hp = 500 * ctx.hpMult;
   if (!gameLayer) return;
-  const g = new Graphics()
-    .rect(-20, -20, 40, 40)
-    .fill({ color: 0x8e44ad })
-    .stroke({ color: 0xffffff, width: 2 });
+  const g = new Graphics().rect(-20, -20, 40, 40).fill({ color: 0x8e44ad }).stroke({ color: 0xffffff, width: 2 });
   g.position.set(GAME_W / 2, -50);
   gameLayer.addChild(g);
   enemies.push({
