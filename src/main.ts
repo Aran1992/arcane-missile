@@ -69,7 +69,8 @@ import { createUI, updateHP, updateEXP, showUpgrade, showGameOver, lvlTxt, infoT
         setTimeout(() => {
           if (gameOver || paused) return;
           for (let v = 0; v < ctx.volley; v++) {
-            const ao = ctx.volley > 1 ? (v / (ctx.volley - 1) - 0.5) * ctx.spread : 0;
+            // 第0颗始终对准目标，其余在两侧对称散开
+            const ao = v === 0 ? 0 : (v % 2 === 1 ? 1 : -1) * Math.ceil(v / 2) * ctx.spread;
             spawnBullet(ao);
           }
         }, b * 80);
