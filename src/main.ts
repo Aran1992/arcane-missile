@@ -6,9 +6,6 @@ import {
   PLAYER_Y,
   PLAYER_W,
   PLAYER_H,
-  EXP_BASE,
-  EXP_PER_LEVEL,
-  BOSS_SPAWN,
   ctx,
   bullets,
   enemies,
@@ -22,11 +19,13 @@ import {
   setWaveTimer,
   setBossSpawned,
 } from './state';
+import { getConfig } from './configLoader';
 import { spawnBullet, updateBullets, spawnExplosion, spawnSplit, showDamageNumber } from './bullet';
 import { spawnEnemy, spawnBoss, updateEnemies, pickEnemyType, killEnemy } from './enemy';
 import { createUI, updateHP, updateEXP, showUpgrade, showGameOver, lvlTxt, infoTxt } from './ui';
 
 (async () => {
+  const cfg = getConfig();
   const a = new Application();
   await a.init({ width: GAME_W, height: GAME_H, backgroundColor: 0x1a1a2e, preference: 'canvas' });
   document.getElementById('app')!.appendChild(a.canvas as HTMLCanvasElement);
@@ -39,15 +38,12 @@ import { createUI, updateHP, updateEXP, showUpgrade, showGameOver, lvlTxt, infoT
   setGameLayer(gameLayer);
   setUiLayer(uiLayer);
 
-  // ---- 玩家 ----
   const playerG = new Graphics().rect(-PLAYER_W / 2, -PLAYER_H / 2, PLAYER_W, PLAYER_H).fill({ color: 0x3498db });
   playerG.position.set(GAME_W / 2, PLAYER_Y);
   gameLayer.addChild(playerG);
 
-  // ---- UI ----
   createUI();
 
-  // ======================== 主循环 ========================
   let lastTime = performance.now();
   let shootCD = 0;
 
@@ -69,11 +65,10 @@ import { createUI, updateHP, updateEXP, showUpgrade, showGameOver, lvlTxt, infoT
         setTimeout(() => {
           if (gameOver || paused) return;
           for (let v = 0; v < ctx.volley; v++) {
-            // 第0颗始终对准目标，其余在两侧对称散开
             const ao = v === 0 ? 0 : (v % 2 === 1 ? 1 : -1) * Math.ceil(v / 2) * ctx.spread;
             spawnBullet(ao);
           }
-        }, b * 80);
+        }, b * cfg.bullet.burstInterval);
       }
     }
 
@@ -89,7 +84,7 @@ import { createUI, updateHP, updateEXP, showUpgrade, showGameOver, lvlTxt, infoT
     }
     setWaveTimer(wt);
 
-    if (!bossSpawned && ctx.time >= BOSS_SPAWN) {
+    if (!bossSpawned && ctx.time >= cfg.enemy.bossSpawnTime) {
       setBossSpawned(true);
       spawnBoss();
     }
@@ -121,7 +116,6 @@ import { createUI, updateHP, updateEXP, showUpgrade, showGameOver, lvlTxt, infoT
         }
       }
     }
-    // 清理碰撞导致的死亡子弹
     for (let i = bullets.length - 1; i >= 0; i--) {
       if (!bullets[i].alive) bullets.splice(i, 1);
     }
@@ -144,9 +138,9 @@ import { createUI, updateHP, updateEXP, showUpgrade, showGameOver, lvlTxt, infoT
     if (ctx.exp >= ctx.needExp) {
       ctx.exp -= ctx.needExp;
       ctx.lvl++;
-      ctx.needExp = EXP_BASE + (ctx.lvl - 1) * EXP_PER_LEVEL;
+      ctx.needExp = cfg.exp.base + (ctx.lvl - 1) * cfg.exp.perLevel;
       lvlTxt.text = `Lv.${ctx.lvl}`;
-      if (ctx.lvl % 2 === 0) ctx.hpMult *= 1.1;
+      if (ctx.lvl % 2 === 0) ctx.hpMult *= cfg.enemy.hpScalePer2Levels;
       updateEXP();
       showUpgrade();
     }

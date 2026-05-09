@@ -1,0 +1,54 @@
+{
+  "version": "0.1",
+  "player": {
+    "hp": 5,
+    "maxHP": 5,
+    "size": 40
+  },
+  "bullet": {
+    "damage": 10,
+    "speed": 1200,
+    "size": 10,
+    "life": 2.5,
+    "fireRate": 2,
+    "volley": 1,
+    "burst": 1,
+    "burstInterval": 80,
+    "spread": 0.15,
+    "pierce": 0,
+    "split": false,
+    "splitN": 2,
+    "splitDmg": 0.5,
+    "splitSz": 0.6,
+    "explode": false,
+    "explR": 60,
+    "explDmgR": 0.5
+  },
+  "enemy": {
+    "waveInterval": 3,
+    "waveCount": 2,
+    "hpScalePer2Levels": 1.1,
+    "bossSpawnTime": 180,
+    "bossHP": 500,
+    "bossSpeed": 25,
+    "bossDmg": 15,
+    "bossSize": 40,
+    "bossScore": 200,
+    "types": [
+      { "id": "slime",  "hp": 20, "speed": 60,  "dmg": 5,  "size": 14, "score": 10, "color": "#e74c3c" },
+      { "id": "bat",    "hp": 12, "speed": 120, "dmg": 3,  "size": 10, "score": 8,  "color": "#9b59b6" },
+      { "id": "knight", "hp": 80, "speed": 35,  "dmg": 10, "size": 20, "score": 25, "color": "#2c3e50" },
+      { "id": "bomber", "hp": 30, "speed": 90,  "dmg": 20, "size": 14, "score": 15, "color": "#e67e22" }
+    ],
+    "difficulty": [
+      { "until": 30,  "weights": [1, 0, 0, 0] },
+      { "until": 60,  "weights": [0.6, 0.4, 0, 0] },
+      { "until": 90,  "weights": [0.4, 0.3, 0.3, 0] },
+      { "until": null, "weights": [0.3, 0.2, 0.25, 0.25] }
+    ]
+  },
+  "exp": {
+    "base": 100,
+    "perLevel": 50
+  }
+}
