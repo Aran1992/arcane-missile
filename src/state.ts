@@ -2,8 +2,8 @@ import { Application, Container } from 'pixi.js';
 import type { Bullet, Enemy } from './types';
 
 // ======================== 常量 ========================
-export const GAME_W = 1280;
-export const GAME_H = 720;
+export const GAME_W = 720;
+export const GAME_H = 1280;
 export const PLAYER_Y = GAME_H - 80;
 export const PLAYER_W = 40;
 export const PLAYER_H = 40;
