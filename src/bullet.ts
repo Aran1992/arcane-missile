@@ -24,7 +24,7 @@ export function spawnBullet(angleOff: number) {
   }
   const g = new Graphics().circle(0, 0, ctx.bSize).fill({ color: 0xf1c40f });
   g.position.set(GAME_W / 2, PLAYER_Y);
-  gameLayer.addChild(g as any);
+  gameLayer.addChild(g);
   bullets.push({
     id: genId(),
     x: GAME_W / 2,
@@ -44,7 +44,7 @@ export function spawnBullet(angleOff: number) {
     explode: ctx.explode,
     explR: ctx.explR,
     explDmg: ctx.bDmg * ctx.explDmgR,
-    g: g as any,
+    g,
     alive: true,
   });
 }
@@ -57,7 +57,7 @@ export function spawnSplit(b: Bullet, hx: number, hy: number) {
       vy = Math.sin(a);
     const g = new Graphics().circle(0, 0, b.size * b.splitSz).fill({ color: 0xf1c40f });
     g.position.set(hx, hy);
-    gameLayer.addChild(g as any);
+    gameLayer.addChild(g);
     bullets.push({
       id: genId(),
       x: hx,
@@ -77,7 +77,7 @@ export function spawnSplit(b: Bullet, hx: number, hy: number) {
       explode: b.explode,
       explR: b.explR * 0.6,
       explDmg: b.explDmg * b.splitDmg,
-      g: g as any,
+      g,
       alive: true,
     });
   }
@@ -90,7 +90,7 @@ export function spawnExplosion(x: number, y: number, r: number, dmg: number) {
     .fill({ color: 0xe67e22, alpha: 0.3 })
     .stroke({ color: 0xf39c12, width: 2 });
   ring.position.set(x, y);
-  gameLayer.addChild(ring as any);
+  gameLayer.addChild(ring);
   for (const e of enemies) {
     if (!e.alive) continue;
     if (Math.hypot(x - e.x, y - e.y) <= r) {
@@ -122,7 +122,6 @@ export function updateBullets(dt: number) {
       if (gameLayer && b.g.parent) gameLayer.removeChild(b.g);
     }
   }
-  // 清理死亡子弹
   for (let i = bullets.length - 1; i >= 0; i--) {
     if (!bullets[i].alive) bullets.splice(i, 1);
   }

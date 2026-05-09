@@ -33,7 +33,7 @@ export function spawnEnemy(ti: number) {
   if (!gameLayer) return;
   const g = new Graphics().circle(0, 0, t.size).fill({ color: t.color });
   g.position.set(x, -30);
-  gameLayer.addChild(g as any);
+  gameLayer.addChild(g);
   enemies.push({
     id: genId(),
     x,
@@ -46,7 +46,7 @@ export function spawnEnemy(ti: number) {
     score: t.score,
     color: t.color,
     type: t.id,
-    g: g as any,
+    g,
     alive: true,
     phase: Math.random() * Math.PI * 2,
     hitTimer: 0,
@@ -56,9 +56,12 @@ export function spawnEnemy(ti: number) {
 export function spawnBoss() {
   const hp = 500 * ctx.hpMult;
   if (!gameLayer) return;
-  const g = new Graphics().rect(-20, -20, 40, 40).fill({ color: 0x8e44ad }).stroke({ color: 0xffffff, width: 2 });
+  const g = new Graphics()
+    .rect(-20, -20, 40, 40)
+    .fill({ color: 0x8e44ad })
+    .stroke({ color: 0xffffff, width: 2 });
   g.position.set(GAME_W / 2, -50);
-  gameLayer.addChild(g as any);
+  gameLayer.addChild(g);
   enemies.push({
     id: genId(),
     x: GAME_W / 2,
@@ -71,7 +74,7 @@ export function spawnBoss() {
     score: 200,
     color: 0x8e44ad,
     type: 'boss',
-    g: g as any,
+    g,
     alive: true,
     phase: 0,
     hitTimer: 0,
@@ -91,7 +94,7 @@ export function killEnemy(e: Enemy) {
   });
   ft.anchor.set(0.5);
   ft.position.set(e.x, e.y);
-  if (gameLayer) gameLayer.addChild(ft as any);
+  if (gameLayer) gameLayer.addChild(ft);
   let ttl = 0.6;
   const ticker = () => {
     ttl -= 0.016;
@@ -142,7 +145,6 @@ export function updateEnemies(dt: number) {
       if (gameLayer && e.g.parent) gameLayer.removeChild(e.g);
     }
   }
-  // 使用 splicing 避免全数组重建
   for (let i = enemies.length - 1; i >= 0; i--) {
     if (!enemies[i].alive) enemies.splice(i, 1);
   }

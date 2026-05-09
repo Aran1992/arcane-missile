@@ -1,5 +1,5 @@
 import { Application, Container } from 'pixi.js';
-import type { Bullet, Enemy } from './types';
+import type { Bullet, Enemy, GameCtx } from './types';
 
 // ======================== 常量 ========================
 export const GAME_W = 720;
@@ -12,7 +12,7 @@ export const EXP_PER_LEVEL = 50;
 export const BOSS_SPAWN = 180;
 
 // ======================== 可变游戏状态 ========================
-export const ctx: Record<string, any> = {
+export const ctx: GameCtx = {
   hp: 5,
   maxHP: 5,
   fireRate: 2,

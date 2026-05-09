@@ -1,4 +1,5 @@
 import { Graphics, Text, TextStyle, Container } from 'pixi.js';
+import type { UpgradeDef } from './types';
 import { GAME_W, GAME_H, ctx, gameLayer, uiLayer, setPaused, setGameOver, resetState } from './state';
 import { pickUpgrades } from './upgrade';
 
@@ -72,7 +73,7 @@ export function showUpgrade() {
   const tw = choices.length * pw + (choices.length - 1) * gap;
   const sx = (GAME_W - tw) / 2;
 
-  choices.forEach((u: any, i: number) => {
+  choices.forEach((u: UpgradeDef, i: number) => {
     const cx = sx + i * (pw + gap) + pw / 2;
     const cy = 400;
     const rc = u.rarity === 'epic' ? '#ff6b6b' : u.rarity === 'rare' ? '#5dade2' : '#bdc3c7';
