@@ -1,6 +1,5 @@
 import { Application, Container, Graphics } from 'pixi.js';
 import './style.css';
-import type { Bullet, Enemy } from './types';
 import {
   GAME_W,
   GAME_H,

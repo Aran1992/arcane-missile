@@ -1,4 +1,3 @@
-import type { Bullet, Enemy } from './types';
 import { ctx } from './state';
 
 export const UPGRADES: any[] = [

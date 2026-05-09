@@ -50,4 +50,3 @@ export interface EnemyType {
   score: number;
   color: number;
 }
-

@@ -1,5 +1,5 @@
 import { Graphics, Text, TextStyle, Container } from 'pixi.js';
-import { GAME_W, GAME_H, ctx, bullets, enemies, gameLayer, uiLayer, setPaused, setGameOver, resetState } from './state';
+import { GAME_W, GAME_H, ctx, gameLayer, uiLayer, setPaused, setGameOver, resetState } from './state';
 import { pickUpgrades } from './upgrade';
 
 // ---- HP/EXP 条 ----
