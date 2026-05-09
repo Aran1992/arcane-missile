@@ -2,11 +2,26 @@ import { Application, Container, Graphics } from 'pixi.js';
 import './style.css';
 import type { Bullet, Enemy } from './types';
 import {
-  GAME_W, GAME_H, PLAYER_Y, PLAYER_W, PLAYER_H,
-  EXP_BASE, EXP_PER_LEVEL, BOSS_SPAWN,
-  ctx, bullets, enemies,
-  gameOver, paused, waveTimer, bossSpawned,
-  setApp, setGameLayer, setUiLayer, setWaveTimer, setBossSpawned,
+  GAME_W,
+  GAME_H,
+  PLAYER_Y,
+  PLAYER_W,
+  PLAYER_H,
+  EXP_BASE,
+  EXP_PER_LEVEL,
+  BOSS_SPAWN,
+  ctx,
+  bullets,
+  enemies,
+  gameOver,
+  paused,
+  waveTimer,
+  bossSpawned,
+  setApp,
+  setGameLayer,
+  setUiLayer,
+  setWaveTimer,
+  setBossSpawned,
 } from './state';
 import { spawnBullet, updateBullets, spawnExplosion, spawnSplit } from './bullet';
 import { spawnEnemy, spawnBoss, updateEnemies, pickEnemyType, killEnemy } from './enemy';
@@ -26,9 +41,7 @@ import { createUI, updateHP, updateEXP, showUpgrade, showGameOver, lvlTxt, infoT
   setUiLayer(uiLayer);
 
   // ---- 玩家 ----
-  const playerG = new Graphics()
-    .rect(-PLAYER_W / 2, -PLAYER_H / 2, PLAYER_W, PLAYER_H)
-    .fill({ color: 0x3498db });
+  const playerG = new Graphics().rect(-PLAYER_W / 2, -PLAYER_H / 2, PLAYER_W, PLAYER_H).fill({ color: 0x3498db });
   playerG.position.set(GAME_W / 2, PLAYER_Y);
   gameLayer.addChild(playerG);
 

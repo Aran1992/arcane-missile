@@ -12,9 +12,18 @@ export const ENEMY_TYPES: EnemyType[] = [
 
 export function pickEnemyType(time: number): number {
   if (time < 30) return 0;
-  if (time < 60) return Math.random() < .6 ? 0 : 1;
-  if (time < 90) { const r = Math.random(); if (r < .4) return 0; if (r < .7) return 1; return 2; }
-  const r = Math.random(); if (r < .3) return 0; if (r < .5) return 1; if (r < .75) return 2; return 3;
+  if (time < 60) return Math.random() < 0.6 ? 0 : 1;
+  if (time < 90) {
+    const r = Math.random();
+    if (r < 0.4) return 0;
+    if (r < 0.7) return 1;
+    return 2;
+  }
+  const r = Math.random();
+  if (r < 0.3) return 0;
+  if (r < 0.5) return 1;
+  if (r < 0.75) return 2;
+  return 3;
 }
 
 export function spawnEnemy(ti: number) {
@@ -23,16 +32,50 @@ export function spawnEnemy(ti: number) {
   const hp = Math.ceil(t.hp * ctx.hpMult);
   if (!gameLayer) return;
   const g = new Graphics().circle(0, 0, t.size).fill({ color: t.color });
-  g.position.set(x, -30); gameLayer.addChild(g as any);
-  enemies.push({ id: genId(), x, y: -30, hp, maxHP: hp, speed: t.speed, dmg: t.dmg, size: t.size, score: t.score, color: t.color, type: t.id, g: g as any, alive: true, phase: Math.random() * Math.PI * 2, hitTimer: 0 });
+  g.position.set(x, -30);
+  gameLayer.addChild(g as any);
+  enemies.push({
+    id: genId(),
+    x,
+    y: -30,
+    hp,
+    maxHP: hp,
+    speed: t.speed,
+    dmg: t.dmg,
+    size: t.size,
+    score: t.score,
+    color: t.color,
+    type: t.id,
+    g: g as any,
+    alive: true,
+    phase: Math.random() * Math.PI * 2,
+    hitTimer: 0,
+  });
 }
 
 export function spawnBoss() {
   const hp = 500 * ctx.hpMult;
   if (!gameLayer) return;
   const g = new Graphics().rect(-20, -20, 40, 40).fill({ color: 0x8e44ad }).stroke({ color: 0xffffff, width: 2 });
-  g.position.set(GAME_W / 2, -50); gameLayer.addChild(g as any);
-  enemies.push({ id: genId(), x: GAME_W / 2, y: -50, hp, maxHP: hp, speed: 25, dmg: 15, size: 40, score: 200, color: 0x8e44ad, type: 'boss', g: g as any, alive: true, phase: 0, hitTimer: 0 });
+  g.position.set(GAME_W / 2, -50);
+  gameLayer.addChild(g as any);
+  enemies.push({
+    id: genId(),
+    x: GAME_W / 2,
+    y: -50,
+    hp,
+    maxHP: hp,
+    speed: 25,
+    dmg: 15,
+    size: 40,
+    score: 200,
+    color: 0x8e44ad,
+    type: 'boss',
+    g: g as any,
+    alive: true,
+    phase: 0,
+    hitTimer: 0,
+  });
 }
 
 export function killEnemy(e: Enemy) {
@@ -42,13 +85,17 @@ export function killEnemy(e: Enemy) {
   ctx.exp += e.score;
 
   // 飘分文字
-  const ft = new Text({ text: `+${e.score}`, style: new TextStyle({ fontSize: 13, fill: '#ff0', fontFamily: 'monospace' }) });
-  ft.anchor.set(.5); ft.position.set(e.x, e.y);
+  const ft = new Text({
+    text: `+${e.score}`,
+    style: new TextStyle({ fontSize: 13, fill: '#ff0', fontFamily: 'monospace' }),
+  });
+  ft.anchor.set(0.5);
+  ft.position.set(e.x, e.y);
   if (gameLayer) gameLayer.addChild(ft as any);
-  let ttl = .6;
+  let ttl = 0.6;
   const ticker = () => {
     ttl -= 0.016;
-    ft.alpha = ttl / .6;
+    ft.alpha = ttl / 0.6;
     ft.y -= 1;
     if (ttl <= 0) {
       if (app) app.ticker.remove(ticker);
@@ -60,11 +107,15 @@ export function killEnemy(e: Enemy) {
 }
 
 export function nearestEnemy(ex: number, ey: number): Enemy | null {
-  let best: Enemy | null = null, bestD = Infinity;
+  let best: Enemy | null = null,
+    bestD = Infinity;
   for (const e of enemies) {
     if (!e.alive) continue;
     const d = Math.hypot(e.x - ex, e.y - ey);
-    if (d < bestD) { bestD = d; best = e; }
+    if (d < bestD) {
+      bestD = d;
+      best = e;
+    }
   }
   return best;
 }
@@ -73,8 +124,12 @@ export function updateEnemies(dt: number) {
   for (const e of enemies) {
     if (!e.alive) continue;
     let sx = 0;
-    if (e.type === 'bat' || e.type === 'bomber') { e.phase += dt * 3; sx = Math.sin(e.phase) * 40; }
-    e.x += sx * dt; e.y += e.speed * dt;
+    if (e.type === 'bat' || e.type === 'bomber') {
+      e.phase += dt * 3;
+      sx = Math.sin(e.phase) * 40;
+    }
+    e.x += sx * dt;
+    e.y += e.speed * dt;
     e.g.position.set(e.x, e.y);
     if (e.hitTimer > 0) {
       e.hitTimer -= dt;
@@ -82,7 +137,10 @@ export function updateEnemies(dt: number) {
     } else if (e.g.tint !== 0xffffff) {
       e.g.tint = 0xffffff;
     }
-    if (e.y > GAME_H + 50) { e.alive = false; if (gameLayer && e.g.parent) gameLayer.removeChild(e.g); }
+    if (e.y > GAME_H + 50) {
+      e.alive = false;
+      if (gameLayer && e.g.parent) gameLayer.removeChild(e.g);
+    }
   }
   // 使用 splicing 避免全数组重建
   for (let i = enemies.length - 1; i >= 0; i--) {
