@@ -1,9 +1,23 @@
 import { Application, Container, Graphics } from 'pixi.js';
 import './style.css';
 import {
-  GAME_W, GAME_H, PLAYER_Y, PLAYER_W, PLAYER_H,
-  ctx, bullets, enemies, gameOver, paused, waveTimer, bossSpawned,
-  setApp, setGameLayer, setUiLayer, setWaveTimer, setBossSpawned,
+  GAME_W,
+  GAME_H,
+  PLAYER_Y,
+  PLAYER_W,
+  PLAYER_H,
+  ctx,
+  bullets,
+  enemies,
+  gameOver,
+  paused,
+  waveTimer,
+  bossSpawned,
+  setApp,
+  setGameLayer,
+  setUiLayer,
+  setWaveTimer,
+  setBossSpawned,
 } from './state';
 import { getConfig } from './configLoader';
 import { spawnBullet, updateBullets, spawnExplosion, spawnSplit, showDamageNumber } from './bullet';

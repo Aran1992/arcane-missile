@@ -86,14 +86,30 @@ export let app: Application | null = null;
 export let gameLayer: Container | null = null;
 export let uiLayer: Container | null = null;
 
-export function setApp(a: Application) { app = a; }
-export function setGameLayer(g: Container) { gameLayer = g; }
-export function setUiLayer(u: Container) { uiLayer = u; }
-export function genId(): number { return ++nextId; }
-export function setPaused(v: boolean) { paused = v; }
-export function setGameOver(v: boolean) { gameOver = v; }
-export function setWaveTimer(v: number) { waveTimer = v; }
-export function setBossSpawned(v: boolean) { bossSpawned = v; }
+export function setApp(a: Application) {
+  app = a;
+}
+export function setGameLayer(g: Container) {
+  gameLayer = g;
+}
+export function setUiLayer(u: Container) {
+  uiLayer = u;
+}
+export function genId(): number {
+  return ++nextId;
+}
+export function setPaused(v: boolean) {
+  paused = v;
+}
+export function setGameOver(v: boolean) {
+  gameOver = v;
+}
+export function setWaveTimer(v: number) {
+  waveTimer = v;
+}
+export function setBossSpawned(v: boolean) {
+  bossSpawned = v;
+}
 
 export function resetState() {
   bullets.forEach((b) => {

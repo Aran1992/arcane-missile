@@ -26,7 +26,10 @@ export function pickEnemyType(time: number): number {
   const phases = cfg.enemy.difficulty;
   let phase = phases[phases.length - 1];
   for (const p of phases) {
-    if (p.until === null || time < p.until) { phase = p; break; }
+    if (p.until === null || time < p.until) {
+      phase = p;
+      break;
+    }
   }
   const r = Math.random();
   let cum = 0;
@@ -47,10 +50,21 @@ export function spawnEnemy(ti: number) {
   g.position.set(x, -30);
   gameLayer.addChild(g);
   enemies.push({
-    id: genId(), x, y: -30, hp, maxHP: hp,
-    speed: t.speed, dmg: t.dmg, size: t.size, score: t.score,
-    color: t.color, type: t.id, g, alive: true,
-    phase: Math.random() * Math.PI * 2, hitTimer: 0,
+    id: genId(),
+    x,
+    y: -30,
+    hp,
+    maxHP: hp,
+    speed: t.speed,
+    dmg: t.dmg,
+    size: t.size,
+    score: t.score,
+    color: t.color,
+    type: t.id,
+    g,
+    alive: true,
+    phase: Math.random() * Math.PI * 2,
+    hitTimer: 0,
   });
 }
 
@@ -58,18 +72,25 @@ export function spawnBoss() {
   const cfg = getConfig();
   const hp = cfg.enemy.bossHP * ctx.hpMult;
   if (!gameLayer) return;
-  const g = new Graphics()
-    .rect(-20, -20, 40, 40)
-    .fill({ color: 0x8e44ad })
-    .stroke({ color: 0xffffff, width: 2 });
+  const g = new Graphics().rect(-20, -20, 40, 40).fill({ color: 0x8e44ad }).stroke({ color: 0xffffff, width: 2 });
   g.position.set(GAME_W / 2, -50);
   gameLayer.addChild(g);
   enemies.push({
-    id: genId(), x: GAME_W / 2, y: -50, hp, maxHP: hp,
-    speed: cfg.enemy.bossSpeed, dmg: cfg.enemy.bossDmg,
-    size: cfg.enemy.bossSize, score: cfg.enemy.bossScore,
-    color: 0x8e44ad, type: 'boss', g, alive: true,
-    phase: 0, hitTimer: 0,
+    id: genId(),
+    x: GAME_W / 2,
+    y: -50,
+    hp,
+    maxHP: hp,
+    speed: cfg.enemy.bossSpeed,
+    dmg: cfg.enemy.bossDmg,
+    size: cfg.enemy.bossSize,
+    score: cfg.enemy.bossScore,
+    color: 0x8e44ad,
+    type: 'boss',
+    g,
+    alive: true,
+    phase: 0,
+    hitTimer: 0,
   });
 }
 
@@ -82,11 +103,15 @@ export function killEnemy(e: Enemy) {
 }
 
 export function nearestEnemy(ex: number, ey: number): Enemy | null {
-  let best: Enemy | null = null, bestD = Infinity;
+  let best: Enemy | null = null,
+    bestD = Infinity;
   for (const e of enemies) {
     if (!e.alive) continue;
     const d = Math.hypot(e.x - ex, e.y - ey);
-    if (d < bestD) { bestD = d; best = e; }
+    if (d < bestD) {
+      bestD = d;
+      best = e;
+    }
   }
   return best;
 }
