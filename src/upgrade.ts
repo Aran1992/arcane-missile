@@ -60,7 +60,7 @@ export const UPGRADES: UpgradeDef[] = [
     unique: true,
     fn: () => {
       ctx.split = true;
-      ctx.splitN = 2;
+      ctx.splitN = Math.max(ctx.splitN, 2);
     },
   },
   {

@@ -14,7 +14,7 @@
             :value="value"
             :step="typeof value === 'number' && !Number.isInteger(value) ? 0.01 : 1"
             :min="typeof value === 'number' ? 0 : undefined"
-            @input="onChange(String(key), ($event.target as HTMLInputElement).value)"
+            @input="onChange(String(key), inputType(value) === 'checkbox' ? String(($event.target as HTMLInputElement).checked) : ($event.target as HTMLInputElement).value)"
           />
         </div>
         <div v-else-if="isArray && typeof key === 'number'" class="array-item">
