@@ -81,6 +81,7 @@ export const UPGRADES: UpgradeDef[] = [
     desc: '多分裂1颗',
     rarity: 'common',
     unique: false,
+    prerequisite: 'split',
     fn: () => {
       ctx.splitN += 1;
     },
@@ -91,6 +92,7 @@ export const UPGRADES: UpgradeDef[] = [
     desc: '爆炸范围扩大',
     rarity: 'common',
     unique: false,
+    prerequisite: 'explode',
     fn: () => {
       ctx.explR *= 1.25;
     },
@@ -101,6 +103,7 @@ export const UPGRADES: UpgradeDef[] = [
     desc: '爆炸伤害提升',
     rarity: 'common',
     unique: false,
+    prerequisite: 'explode',
     fn: () => {
       ctx.explDmgR *= 1.25;
     },
@@ -141,7 +144,9 @@ export const UPGRADES: UpgradeDef[] = [
 const RARITY_W: Record<string, number> = { common: 60, rare: 30, epic: 10 };
 
 export function pickUpgrades(): UpgradeDef[] {
-  const avail = UPGRADES.filter((u) => !u.unique || !ctx.picked.has(u.id));
+  const avail = UPGRADES.filter(
+    (u) => (!u.unique || !ctx.picked.has(u.id)) && (!u.prerequisite || ctx.picked.has(u.prerequisite))
+  );
   const combat = avail.filter((u) => ['dmg', 'rate', 'volley', 'burst', 'pierce'].includes(u.id));
   const picks: UpgradeDef[] = [];
 

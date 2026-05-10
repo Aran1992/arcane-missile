@@ -88,5 +88,7 @@ export interface UpgradeDef {
   desc: string;
   rarity: 'common' | 'rare' | 'epic';
   unique: boolean;
+  /** 前置升级id，需要先pick此升级后才出现 */
+  prerequisite?: string;
   fn: () => void;
 }
