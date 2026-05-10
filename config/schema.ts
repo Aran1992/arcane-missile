@@ -26,6 +26,12 @@ export interface BulletConfig {
   explDmgR: number;
 }
 
+export interface WallConfig {
+  hp: number;
+  /** 每波额外增加的围墙HP */
+  hpPerWave: number;
+}
+
 export interface EnemyTypeConfig {
   id: string;
   hp: number;
@@ -36,23 +42,22 @@ export interface EnemyTypeConfig {
   color: string;
 }
 
-export interface DifficultyPhase {
-  until: number | null;
-  weights: number[];
-}
-
-export interface EnemySpawnConfig {
-  waveInterval: number;
-  waveCount: number;
-  hpScalePer2Levels: number;
-  bossSpawnTime: number;
-  bossHP: number;
-  bossSpeed: number;
-  bossDmg: number;
-  bossSize: number;
-  bossScore: number;
+export interface EnemySpawningConfig {
+  /** 总波数 */
+  totalWaves: number;
+  /** 第一波敌人数 */
+  waveBaseCount: number;
+  /** 每波额外增加的敌人数 */
+  waveCountGrowth: number;
+  /** 每波敌人HP倍率增长 */
+  hpGrowth: number;
+  /** 每波敌人速度倍率增长 */
+  speedGrowth: number;
+  /** 每个围墙前敌人每秒对围墙造成的伤害 */
+  wallDps: number;
+  /** 每个波次解锁的敌人类型索引, 值=wave需要>=该值才出现 */
+  unlockAtWave: number[];
   types: EnemyTypeConfig[];
-  difficulty: DifficultyPhase[];
 }
 
 export interface ExpConfig {
@@ -64,6 +69,7 @@ export interface GameConfig {
   version: string;
   player: PlayerConfig;
   bullet: BulletConfig;
-  enemy: EnemySpawnConfig;
+  wall: WallConfig;
+  enemy: EnemySpawningConfig;
   exp: ExpConfig;
 }

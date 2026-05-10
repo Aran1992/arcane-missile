@@ -4,6 +4,7 @@ import {
   GAME_W,
   GAME_H,
   PLAYER_Y,
+  WALL_Y,
   PLAYER_W,
   PLAYER_H,
   ctx,
@@ -11,18 +12,14 @@ import {
   enemies,
   gameOver,
   paused,
-  waveTimer,
-  bossSpawned,
   setApp,
   setGameLayer,
   setUiLayer,
-  setWaveTimer,
-  setBossSpawned,
 } from './state';
 import { getConfig } from './configLoader';
 import { spawnBullet, updateBullets, spawnExplosion, spawnSplit, showDamageNumber } from './bullet';
-import { spawnEnemy, spawnBoss, updateEnemies, pickEnemyType, killEnemy } from './enemy';
-import { createUI, updateHP, updateEXP, showUpgrade, showGameOver, lvlTxt, infoTxt } from './ui';
+import { spawnEnemy, updateEnemies, pickEnemyType, killEnemy } from './enemy';
+import { createUI, updateWall, updateWave, showUpgrade, showGameOver, showVictory, infoTxt } from './ui';
 
 (async () => {
   const cfg = getConfig();
@@ -38,14 +35,43 @@ import { createUI, updateHP, updateEXP, showUpgrade, showGameOver, lvlTxt, infoT
   setGameLayer(gameLayer);
   setUiLayer(uiLayer);
 
+  // ---- 玩家 ----
   const playerG = new Graphics().rect(-PLAYER_W / 2, -PLAYER_H / 2, PLAYER_W, PLAYER_H).fill({ color: 0x3498db });
   playerG.position.set(GAME_W / 2, PLAYER_Y);
   gameLayer.addChild(playerG);
+
+  // ---- 围墙 ----
+  const wallG = new Graphics()
+    .rect(0, WALL_Y, GAME_W, 8)
+    .fill({ color: 0x5dade2 })
+    .rect(0, WALL_Y + 8, GAME_W, 3)
+    .fill({ color: 0x2e86c1 });
+  gameLayer.addChild(wallG);
 
   createUI();
 
   let lastTime = performance.now();
   let shootCD = 0;
+
+  // ---- 波次管理 ----
+  let waveActive = false; // 当前波次是否正在进行（还有活敌） 
+
+  function startWave(waveNum: number) {
+    ctx.currentWave = waveNum;
+    // 每波围墙增加
+    ctx.maxWallHP = cfg.wall.hp + (waveNum - 1) * cfg.wall.hpPerWave;
+    ctx.wallHP = ctx.maxWallHP;
+    updateWall();
+    updateWave();
+
+    const count = Math.floor(cfg.enemy.waveBaseCount + (waveNum - 1) * cfg.enemy.waveCountGrowth);
+    for (let i = 0; i < count; i++) {
+      const ti = pickEnemyType(waveNum);
+      setTimeout(() => spawnEnemy(ti, waveNum), i * 300); // 每个间隔300ms陆续出
+    }
+    waveActive = true;
+    infoTxt.text = `波次 ${waveNum}`;
+  }
 
   a.ticker.maxFPS = 60;
   a.ticker.add(() => {
@@ -54,8 +80,15 @@ import { createUI, updateHP, updateEXP, showUpgrade, showGameOver, lvlTxt, infoT
     lastTime = now;
     if (gameOver || paused) return;
 
-    ctx.time += dt;
-    infoTxt.text = `时间 ${Math.floor(ctx.time)}s  击杀 ${ctx.kills}`;
+    // ---- 检测是否需要开始下一波 ----
+    if (!waveActive && enemies.length === 0) {
+      if (ctx.currentWave >= cfg.enemy.totalWaves) {
+        showVictory();
+        return;
+      }
+      // 从波0（初始状态）或读完升级后进入下一波
+      startWave(ctx.currentWave + 1);
+    }
 
     // ---- 射击 ----
     shootCD -= dt;
@@ -75,22 +108,23 @@ import { createUI, updateHP, updateEXP, showUpgrade, showGameOver, lvlTxt, infoT
     // ---- 子弹更新 ----
     updateBullets(dt);
 
-    // ---- 波次 ----
-    let wt = waveTimer;
-    wt -= dt;
-    if (wt <= 0) {
-      wt = ctx.waveInt;
-      for (let i = 0; i < ctx.waveCnt; i++) spawnEnemy(pickEnemyType(ctx.time));
-    }
-    setWaveTimer(wt);
-
-    if (!bossSpawned && ctx.time >= cfg.enemy.bossSpawnTime) {
-      setBossSpawned(true);
-      spawnBoss();
-    }
-
     // ---- 敌人更新 ----
     updateEnemies(dt);
+
+    // ---- 围墙受到攻击 ----
+    for (const e of enemies) {
+      if (!e.alive) continue;
+      if (e.y + e.size >= WALL_Y) {
+        ctx.wallHP -= cfg.enemy.wallDps * dt;
+      }
+    }
+    if (ctx.wallHP <= 0) {
+      ctx.wallHP = 0;
+      updateWall();
+      showGameOver();
+      return;
+    }
+    updateWall();
 
     // ---- 碰撞 子弹 vs 敌人 ----
     for (const b of bullets) {
@@ -120,32 +154,13 @@ import { createUI, updateHP, updateEXP, showUpgrade, showGameOver, lvlTxt, infoT
       if (!bullets[i].alive) bullets.splice(i, 1);
     }
 
-    // ---- 碰撞 敌人 vs 玩家 ----
-    for (const e of enemies) {
-      if (!e.alive) continue;
-      if (Math.hypot(GAME_W / 2 - e.x, PLAYER_Y - e.y) < PLAYER_W / 2 + e.size) {
-        ctx.hp -= e.dmg;
-        updateHP();
-        gameLayer.position.x = (Math.random() - 0.5) * 10;
-        gameLayer.position.y = (Math.random() - 0.5) * 10;
-        setTimeout(() => gameLayer.position.set(0, 0), 100);
-        e.alive = false;
-        if (gameLayer && e.g.parent) gameLayer.removeChild(e.g);
+    // ---- 检测波次完成 ----
+    if (waveActive) {
+      const alive = enemies.some((e) => e.alive);
+      if (!alive) {
+        waveActive = false;
+        showUpgrade();
       }
     }
-
-    // ---- 升级 ----
-    if (ctx.exp >= ctx.needExp) {
-      ctx.exp -= ctx.needExp;
-      ctx.lvl++;
-      ctx.needExp = cfg.exp.base + (ctx.lvl - 1) * cfg.exp.perLevel;
-      lvlTxt.text = `Lv.${ctx.lvl}`;
-      if (ctx.lvl % 2 === 0) ctx.hpMult *= cfg.enemy.hpScalePer2Levels;
-      updateEXP();
-      showUpgrade();
-    }
-
-    // ---- 死亡 ----
-    if (ctx.hp <= 0) showGameOver();
   });
 })();

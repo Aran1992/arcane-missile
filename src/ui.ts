@@ -2,27 +2,60 @@ import { Graphics, Text, TextStyle, Container } from 'pixi.js';
 import type { UpgradeDef } from './types';
 import { GAME_W, GAME_H, ctx, gameLayer, uiLayer, setPaused, setGameOver, resetState } from './state';
 import { pickUpgrades } from './upgrade';
+import { getConfig } from './configLoader';
 
-// ---- HP/EXP 条 ----
+// ---- UI 元素 ----
 export let hpFill: Graphics;
-export let expFill: Graphics;
-export let lvlTxt: Text;
+export let wallFill: Graphics;
+export let wallBg: Graphics;
+export let waveTxt: Text;
 export let infoTxt: Text;
 let upgContainer: Container;
 let overContainer: Container;
 
+const cfg = getConfig();
+
 export function createUI(): { upgContainer: Container; overContainer: Container } {
   if (!uiLayer) throw new Error('uiLayer not initialized');
 
-  const hpBg = new Graphics().rect(20, 20, 200, 18).fill({ color: 0x333 });
+  // 波次文字
+  waveTxt = new Text({
+    text: '波次 1/20',
+    style: new TextStyle({ fontSize: 16, fill: '#ffd700', fontFamily: 'monospace', fontWeight: 'bold' }),
+  });
+  waveTxt.position.set(20, 12);
+
+  // 围墙HP条
+  wallBg = new Graphics().rect(20, 36, 200, 14).fill({ color: 0x333 });
+  wallFill = new Graphics();
+  const wallLabel = new Text({
+    text: '围墙',
+    style: new TextStyle({ fontSize: 10, fill: '#aaa', fontFamily: 'monospace' }),
+  });
+  wallLabel.position.set(10, 38);
+  const wallVal = new Text({
+    text: '',
+    style: new TextStyle({ fontSize: 10, fill: '#ddd', fontFamily: 'monospace' }),
+  });
+  wallVal.position.set(230, 38);
+  wallVal.name = 'wallVal';
+
+  // 玩家HP条
+  const hpBg = new Graphics().rect(20, 58, 200, 14).fill({ color: 0x333 });
   hpFill = new Graphics();
-  const expBg = new Graphics().rect(20, 46, 200, 12).fill({ color: 0x333 });
-  expFill = new Graphics();
-  lvlTxt = new Text({ text: 'Lv.1', style: new TextStyle({ fontSize: 14, fill: '#fff', fontFamily: 'monospace' }) });
-  lvlTxt.position.set(230, 20);
-  infoTxt = new Text({ text: '', style: new TextStyle({ fontSize: 14, fill: '#ccc', fontFamily: 'monospace' }) });
-  infoTxt.position.set(GAME_W - 200, 20);
-  uiLayer.addChild(hpBg, hpFill, expBg, expFill, lvlTxt, infoTxt);
+  const hpLabel = new Text({
+    text: '生命',
+    style: new TextStyle({ fontSize: 10, fill: '#aaa', fontFamily: 'monospace' }),
+  });
+  hpLabel.position.set(10, 60);
+
+  infoTxt = new Text({
+    text: '',
+    style: new TextStyle({ fontSize: 14, fill: '#ccc', fontFamily: 'monospace' }),
+  });
+  infoTxt.position.set(GAME_W - 200, 12);
+
+  uiLayer.addChild(waveTxt, wallBg, wallFill, wallLabel, wallVal, hpBg, hpFill, hpLabel, infoTxt);
 
   upgContainer = new Container();
   upgContainer.visible = false;
@@ -33,7 +66,7 @@ export function createUI(): { upgContainer: Container; overContainer: Container 
   uiLayer.addChild(overContainer);
 
   updateHP();
-  updateEXP();
+  updateWall();
 
   return { upgContainer, overContainer };
 }
@@ -41,12 +74,20 @@ export function createUI(): { upgContainer: Container; overContainer: Container 
 export function updateHP() {
   hpFill.clear();
   const r = Math.max(0, ctx.hp / ctx.maxHP);
-  hpFill.rect(22, 22, 196 * r, 14).fill({ color: r > 0.5 ? 0x2ecc71 : r > 0.25 ? 0xf39c12 : 0xe74c3c });
+  hpFill.rect(22, 60, 196 * r, 10).fill({ color: r > 0.5 ? 0x2ecc71 : r > 0.25 ? 0xf39c12 : 0xe74c3c });
 }
 
-export function updateEXP() {
-  expFill.clear();
-  expFill.rect(22, 48, 196 * Math.min(1, ctx.exp / ctx.needExp), 8).fill({ color: 0x9b59b6 });
+export function updateWall() {
+  wallFill.clear();
+  const r = Math.max(0, ctx.wallHP / ctx.maxWallHP);
+  wallFill.rect(22, 38, 196 * r, 10).fill({ color: r > 0.5 ? 0x3498db : r > 0.25 ? 0xf39c12 : 0xe74c3c });
+  // 更新围墙HP数字
+  const wv = uiLayer?.getChildByName('wallVal') as Text;
+  if (wv) wv.text = `${Math.ceil(ctx.wallHP)}/${ctx.maxWallHP}`;
+}
+
+export function updateWave() {
+  waveTxt.text = `波次 ${ctx.currentWave}/${cfg.enemy.totalWaves}`;
 }
 
 export function showUpgrade() {
@@ -60,11 +101,11 @@ export function showUpgrade() {
   upgContainer.addChild(bg);
 
   const title = new Text({
-    text: `✨ 升级！ Lv.${ctx.lvl}`,
+    text: `✨ 升级！ 波次 ${ctx.currentWave}`,
     style: new TextStyle({ fontSize: 28, fill: '#ffd700', fontFamily: 'monospace', fontWeight: 'bold' }),
   });
   title.anchor.set(0.5);
-  title.position.set(GAME_W / 2, 200);
+  title.position.set(GAME_W / 2, 180);
   upgContainer.addChild(title);
 
   const pw = 260,
@@ -75,7 +116,7 @@ export function showUpgrade() {
 
   choices.forEach((u: UpgradeDef, i: number) => {
     const cx = sx + i * (pw + gap) + pw / 2;
-    const cy = 400;
+    const cy = 380;
     const rc = u.rarity === 'epic' ? '#ff6b6b' : u.rarity === 'rare' ? '#5dade2' : '#bdc3c7';
     const card = new Graphics()
       .roundRect(-pw / 2, -ph / 2, pw, ph, 10)
@@ -123,33 +164,72 @@ export function showGameOver() {
   const bg = new Graphics().rect(0, 0, GAME_W, GAME_H).fill({ color: 0, alpha: 0.7 });
   overContainer.addChild(bg);
   const t = new Text({
-    text: '💀 游戏结束',
+    text: '💀 围墙被攻破',
     style: new TextStyle({ fontSize: 48, fill: '#e74c3c', fontFamily: 'monospace', fontWeight: 'bold' }),
   });
   t.anchor.set(0.5);
-  t.position.set(GAME_W / 2, 250);
+  t.position.set(GAME_W / 2, 220);
   overContainer.addChild(t);
   const s = new Text({
-    text: `存活: ${Math.floor(ctx.time)}s\n击杀: ${ctx.kills}\n等级: ${ctx.lvl}`,
+    text: `到达波次: ${ctx.currentWave}/${cfg.enemy.totalWaves}\n击杀: ${ctx.kills}`, //  升级: ${ctx.lvl}
     style: new TextStyle({ fontSize: 24, fill: '#fff', fontFamily: 'monospace' }),
   });
   s.anchor.set(0.5);
-  s.position.set(GAME_W / 2, 380);
+  s.position.set(GAME_W / 2, 340);
   overContainer.addChild(s);
   const btn = new Text({
     text: '[ 重新开始 ]',
     style: new TextStyle({ fontSize: 28, fill: '#2ecc71', fontFamily: 'monospace', fontWeight: 'bold' }),
   });
   btn.anchor.set(0.5);
-  btn.position.set(GAME_W / 2, 500);
+  btn.position.set(GAME_W / 2, 460);
   btn.eventMode = 'static';
   btn.cursor = 'pointer';
   btn.on('pointerdown', () => {
     resetState();
     overContainer.visible = false;
     updateHP();
-    updateEXP();
-    lvlTxt.text = 'Lv.1';
+    updateWall();
+    updateWave();
+    infoTxt.text = '';
+  });
+  overContainer.addChild(btn);
+}
+
+export function showVictory() {
+  setGameOver(true);
+  overContainer.removeChildren();
+  overContainer.visible = true;
+  const bg = new Graphics().rect(0, 0, GAME_W, GAME_H).fill({ color: 0, alpha: 0.7 });
+  overContainer.addChild(bg);
+  const t = new Text({
+    text: '🎉 胜利！',
+    style: new TextStyle({ fontSize: 56, fill: '#ffd700', fontFamily: 'monospace', fontWeight: 'bold' }),
+  });
+  t.anchor.set(0.5);
+  t.position.set(GAME_W / 2, 220);
+  overContainer.addChild(t);
+  const s = new Text({
+    text: `全部 ${cfg.enemy.totalWaves} 波清除！\n击杀: ${ctx.kills}`,
+    style: new TextStyle({ fontSize: 24, fill: '#fff', fontFamily: 'monospace' }),
+  });
+  s.anchor.set(0.5);
+  s.position.set(GAME_W / 2, 340);
+  overContainer.addChild(s);
+  const btn = new Text({
+    text: '[ 再来一局 ]',
+    style: new TextStyle({ fontSize: 28, fill: '#2ecc71', fontFamily: 'monospace', fontWeight: 'bold' }),
+  });
+  btn.anchor.set(0.5);
+  btn.position.set(GAME_W / 2, 460);
+  btn.eventMode = 'static';
+  btn.cursor = 'pointer';
+  btn.on('pointerdown', () => {
+    resetState();
+    overContainer.visible = false;
+    updateHP();
+    updateWall();
+    updateWave();
     infoTxt.text = '';
   });
   overContainer.addChild(btn);

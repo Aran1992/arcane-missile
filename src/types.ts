@@ -72,14 +72,10 @@ export interface GameCtx {
   explDmgR: number;
   cd: number;
   picked: Set<string>;
-  time: number;
-  waveInt: number;
-  waveCnt: number;
-  hpMult: number;
-  lvl: number;
-  exp: number;
-  needExp: number;
   kills: number;
+  wallHP: number;
+  maxWallHP: number;
+  currentWave: number;
 }
 
 export interface UpgradeDef {

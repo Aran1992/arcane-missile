@@ -10,6 +10,8 @@ export const GAME_H = 1280;
 export const PLAYER_Y = GAME_H - 80;
 export const PLAYER_W = cfg.player.size;
 export const PLAYER_H = cfg.player.size;
+/** 围墙Y坐标，敌人在此停下并攻击围墙 */
+export const WALL_Y = GAME_H - 200;
 
 // ======================== 可变游戏状态 ========================
 export const ctx: GameCtx = {
@@ -32,14 +34,10 @@ export const ctx: GameCtx = {
   explDmgR: cfg.bullet.explDmgR,
   cd: 0,
   picked: new Set<string>(),
-  time: 0,
-  waveInt: cfg.enemy.waveInterval,
-  waveCnt: cfg.enemy.waveCount,
-  hpMult: 1,
-  lvl: 1,
-  exp: 0,
-  needExp: cfg.exp.base,
   kills: 0,
+  wallHP: cfg.wall.hp,
+  maxWallHP: cfg.wall.hp,
+  currentWave: 0,
 };
 
 export function resetCtx() {
@@ -63,14 +61,10 @@ export function resetCtx() {
     explDmgR: cfg.bullet.explDmgR,
     cd: 0,
     picked: new Set<string>(),
-    time: 0,
-    waveInt: cfg.enemy.waveInterval,
-    waveCnt: cfg.enemy.waveCount,
-    hpMult: 1,
-    lvl: 1,
-    exp: 0,
-    needExp: cfg.exp.base,
     kills: 0,
+    wallHP: cfg.wall.hp,
+    maxWallHP: cfg.wall.hp,
+    currentWave: 0,
   });
 }
 
@@ -79,8 +73,6 @@ export let enemies: Enemy[] = [];
 export let nextId = 0;
 export let gameOver = false;
 export let paused = false;
-export let waveTimer = 2;
-export let bossSpawned = false;
 
 export let app: Application | null = null;
 export let gameLayer: Container | null = null;
@@ -104,12 +96,6 @@ export function setPaused(v: boolean) {
 export function setGameOver(v: boolean) {
   gameOver = v;
 }
-export function setWaveTimer(v: number) {
-  waveTimer = v;
-}
-export function setBossSpawned(v: boolean) {
-  bossSpawned = v;
-}
 
 export function resetState() {
   bullets.forEach((b) => {
@@ -125,7 +111,5 @@ export function resetState() {
   resetCtx();
   gameOver = false;
   paused = false;
-  waveTimer = 2;
-  bossSpawned = false;
   nextId = 0;
 }
