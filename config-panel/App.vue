@@ -27,7 +27,15 @@ import type { GameConfig } from '../config/schema';
 import defaultCfg from '../config/default.json';
 import ConfigSection from './ConfigSection.vue';
 
-const config = ref<GameConfig>(JSON.parse(JSON.stringify(defaultCfg)));
+function loadSavedConfig(): GameConfig {
+  try {
+    const stored = localStorage.getItem('arcane_config');
+    if (stored) return JSON.parse(stored) as GameConfig;
+  } catch { /* ignore */ }
+  return JSON.parse(JSON.stringify(defaultCfg));
+}
+
+const config = ref<GameConfig>(loadSavedConfig());
 
 function onUpdate(path: string[], value: any) {
   let obj: any = config.value;
@@ -37,6 +45,7 @@ function onUpdate(path: string[], value: any) {
 
 function resetConfig() {
   config.value = JSON.parse(JSON.stringify(defaultCfg));
+  localStorage.removeItem('arcane_config');
 }
 
 function applyToGame() {
