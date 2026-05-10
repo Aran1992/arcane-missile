@@ -105,7 +105,7 @@ import { createUI, updateHP, updateEXP, showUpgrade, showGameOver, lvlTxt, infoT
           showDamageNumber(e.x, e.y, b.damage, 'bullet');
           if (e.hp <= 0) killEnemy(e);
           if (b.explode) spawnExplosion(b.x, b.y, b.explR, b.explDmg);
-          if (b.split && b.splitN > 0) spawnSplit(b, e.x, e.y);
+          if (b.split && b.splitN > 0) spawnSplit(b, e.x, e.y, e.id);
           if (b.pierce > 0) {
             b.pierce--;
           } else {

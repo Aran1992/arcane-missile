@@ -50,7 +50,7 @@ export function spawnBullet(angleOff: number) {
   });
 }
 
-export function spawnSplit(b: Bullet, hx: number, hy: number) {
+export function spawnSplit(b: Bullet, hx: number, hy: number, skipEnemyId: number) {
   if (!gameLayer) return;
   for (let i = 0; i < b.splitN; i++) {
     const a = (i / b.splitN) * Math.PI * 2 + Math.random() * 0.5;
@@ -80,7 +80,7 @@ export function spawnSplit(b: Bullet, hx: number, hy: number) {
       explDmg: b.explDmg * b.splitDmg,
       g,
       alive: true,
-      hitIds: new Set(),
+      hitIds: new Set([skipEnemyId]),
     });
   }
 }
