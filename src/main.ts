@@ -18,7 +18,7 @@ import {
 } from './state';
 import { getConfig } from './configLoader';
 import { spawnBullet, updateBullets, spawnExplosion, spawnSplit, showDamageNumber } from './bullet';
-import { spawnEnemy, updateEnemies, pickEnemyType, killEnemy } from './enemy';
+import { spawnEnemy, spawnSwarmGroup, updateEnemies, killEnemy, pickEnemyType, enemyTypeOf } from './enemy';
 import { createUI, updateWall, updateWave, showUpgrade, showGameOver, showVictory, infoTxt } from './ui';
 
 (async () => {
@@ -53,24 +53,62 @@ import { createUI, updateWall, updateWave, showUpgrade, showGameOver, showVictor
   let lastTime = performance.now();
   let shootCD = 0;
 
-  // ---- 波次管理 ----
-  let waveActive = false; // 当前波次是否正在进行（还有活敌） 
+  // ---- 波次/出怪管理 ----
+  let waveActive = false;
+  let waveSpawnTimer = 0;
+  let waveSpawned = 0;
+  let waveTotalSpawn = 0;
 
   function startWave(waveNum: number) {
     ctx.currentWave = waveNum;
-    // 每波围墙增加
     ctx.maxWallHP = cfg.wall.hp + (waveNum - 1) * cfg.wall.hpPerWave;
     ctx.wallHP = ctx.maxWallHP;
     updateWall();
     updateWave();
 
-    const count = Math.floor(cfg.enemy.waveBaseCount + (waveNum - 1) * cfg.enemy.waveCountGrowth);
-    for (let i = 0; i < count; i++) {
-      const ti = pickEnemyType(waveNum);
-      setTimeout(() => spawnEnemy(ti, waveNum), i * 300); // 每个间隔300ms陆续出
-    }
+    waveTotalSpawn = Math.floor(cfg.enemy.waveBaseCount + (waveNum - 1) * cfg.enemy.waveCountGrowth);
+    waveSpawned = 0;
+    waveSpawnTimer = 0;
     waveActive = true;
-    infoTxt.text = `波次 ${waveNum}`;
+    infoTxt.text = `波次 ${waveNum} · ${waveTotalSpawn}怪`;
+  }
+
+  /** 每帧批量出怪 */
+  function tickSpawn(dt: number) {
+    if (!waveActive || waveSpawned >= waveTotalSpawn) return;
+    waveSpawnTimer -= dt;
+    if (waveSpawnTimer > 0) return;
+
+    const remaining = waveTotalSpawn - waveSpawned;
+    const waveNum = ctx.currentWave;
+    const c = getConfig();
+
+    // 动态批次：开场密集涌入，后面补充
+    const progress = waveSpawned / waveTotalSpawn;
+    let batchSize: number;
+    if (progress < 0.3) batchSize = Math.min(10, Math.max(4, Math.floor(remaining / 15)));
+    else if (progress < 0.6) batchSize = Math.min(6, Math.max(2, Math.floor(remaining / 25)));
+    else batchSize = Math.min(3, Math.max(1, Math.floor(remaining / 35)));
+    batchSize = Math.min(batchSize, remaining);
+
+    for (let i = 0; i < batchSize; i++) {
+      if (waveSpawned >= waveTotalSpawn) break;
+      const ti = pickEnemyType(waveNum);
+      const tId = enemyTypeOf(ti);
+
+      // swarm类型触发群组生成
+      if (tId === 'swarm' && remaining > 8) {
+        const groupSize = 10 + Math.floor(Math.random() * 15);
+        spawnSwarmGroup(ti, waveNum, groupSize);
+        waveSpawned += groupSize;
+        i += Math.min(groupSize - 1, remaining - batchSize);
+      } else {
+        spawnEnemy(ti, waveNum);
+        waveSpawned++;
+      }
+    }
+
+    waveSpawnTimer = c.enemy.spawnInterval / 1000;
   }
 
   a.ticker.maxFPS = 60;
@@ -86,9 +124,11 @@ import { createUI, updateWall, updateWave, showUpgrade, showGameOver, showVictor
         showVictory();
         return;
       }
-      // 从波0（初始状态）或读完升级后进入下一波
       startWave(ctx.currentWave + 1);
     }
+
+    // ---- 出怪 ----
+    if (waveActive) tickSpawn(dt);
 
     // ---- 射击 ----
     shootCD -= dt;
@@ -105,13 +145,13 @@ import { createUI, updateWall, updateWave, showUpgrade, showGameOver, showVictor
       }
     }
 
-    // ---- 子弹更新 ----
+    // ---- 子弹移动 ----
     updateBullets(dt);
 
-    // ---- 敌人更新 ----
+    // ---- 敌人移动 ----
     updateEnemies(dt);
 
-    // ---- 围墙受到攻击 ----
+    // ---- 围墙承受攻击 ----
     for (const e of enemies) {
       if (!e.alive) continue;
       if (e.y + e.size >= WALL_Y) {
@@ -126,16 +166,31 @@ import { createUI, updateWall, updateWave, showUpgrade, showGameOver, showVictor
     }
     updateWall();
 
-    // ---- 碰撞 子弹 vs 敌人 ----
+    // ---- 碰撞检测（Y轴空间网格优化） ----
+    const CELL = 60;
+    const yGrid = new Map<number, typeof enemies>();
+    for (const e of enemies) {
+      if (!e.alive) continue;
+      const row = Math.floor(e.y / CELL);
+      if (!yGrid.has(row)) yGrid.set(row, []);
+      yGrid.get(row)!.push(e);
+    }
+
     for (const b of bullets) {
       if (!b.alive) continue;
-      for (const e of enemies) {
+      const row = Math.floor(b.y / CELL);
+      const candidates: typeof enemies = [];
+      for (let r = row - 1; r <= row + 1; r++) {
+        const cell = yGrid.get(r);
+        if (cell) candidates.push(...cell);
+      }
+      for (const e of candidates) {
         if (!e.alive) continue;
         if (b.hitIds.has(e.id)) continue;
         if (Math.hypot(b.x - e.x, b.y - e.y) < b.size + e.size) {
           b.hitIds.add(e.id);
           e.hp -= b.damage;
-          e.hitTimer = 0.12;
+          e.hitTimer = 0.1;
           showDamageNumber(e.x, e.y, b.damage, 'bullet');
           if (e.hp <= 0) killEnemy(e);
           if (b.explode) spawnExplosion(b.x, b.y, b.explR, b.explDmg);
@@ -144,7 +199,6 @@ import { createUI, updateWall, updateWave, showUpgrade, showGameOver, showVictor
             b.pierce--;
           } else {
             b.alive = false;
-            if (gameLayer && b.g.parent) gameLayer.removeChild(b.g);
             break;
           }
         }
@@ -155,7 +209,7 @@ import { createUI, updateWall, updateWave, showUpgrade, showGameOver, showVictor
     }
 
     // ---- 检测波次完成 ----
-    if (waveActive) {
+    if (waveActive && waveSpawned >= waveTotalSpawn) {
       const alive = enemies.some((e) => e.alive);
       if (!alive) {
         waveActive = false;

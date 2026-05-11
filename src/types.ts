@@ -40,6 +40,14 @@ export interface Enemy {
   alive: boolean;
   phase: number;
   hitTimer: number;
+  /** swarm类小怪标记，用于碰撞优化 */
+  isMini: boolean;
+  /** 母体产仔计时器（秒） */
+  spawnTimer: number;
+  /** 母体产仔间隔（秒） */
+  spawnInterval: number;
+  /** 分裂怪：死亡时分裂的数量 */
+  splitCount: number;
 }
 
 export interface EnemyType {

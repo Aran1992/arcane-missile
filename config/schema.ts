@@ -49,6 +49,8 @@ export interface EnemySpawningConfig {
   waveBaseCount: number;
   /** 每波额外增加的敌人数 */
   waveCountGrowth: number;
+  /** 出怪间隔（ms） */
+  spawnInterval: number;
   /** 每波敌人HP倍率增长 */
   hpGrowth: number;
   /** 每波敌人速度倍率增长 */
