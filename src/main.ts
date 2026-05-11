@@ -199,13 +199,18 @@ import { createUI, updateWall, updateWave, showUpgrade, showGameOver, showVictor
             b.pierce--;
           } else {
             b.alive = false;
+            if (gameLayer && b.g.parent) gameLayer.removeChild(b.g);
             break;
           }
         }
       }
     }
     for (let i = bullets.length - 1; i >= 0; i--) {
-      if (!bullets[i].alive) bullets.splice(i, 1);
+      if (!bullets[i].alive) {
+        const b = bullets[i];
+        if (gameLayer && b.g.parent) gameLayer.removeChild(b.g);
+        bullets.splice(i, 1);
+      }
     }
 
     // ---- 检测波次完成 ----
