@@ -113,15 +113,15 @@ export function spawnExplosion(x: number, y: number, r: number, dmg: number) {
   app.ticker.add(ticker);
 }
 
-export function showDamageNumber(x: number, y: number, dmg: number, type: 'bullet' | 'explosion') {
+export function showDamageNumber(x: number, y: number, dmg: number, type: 'bullet' | 'explosion' | 'laser') {
   if (!gameLayer || !app) return;
   const ft = new Text({
     text: `-${dmg}`,
     style: new TextStyle({
       fontSize: type === 'explosion' ? 16 : 13,
-      fill: type === 'explosion' ? '#e67e22' : '#f1c40f',
+      fill: type === 'explosion' ? '#e67e22' : type === 'laser' ? '#4488ff' : '#f1c40f',
       fontFamily: 'monospace',
-      fontWeight: type === 'explosion' ? 'bold' : 'normal',
+      fontWeight: type === 'explosion' || type === 'laser' ? 'bold' : 'normal',
     }),
   });
   ft.anchor.set(0.5);

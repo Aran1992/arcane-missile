@@ -20,6 +20,7 @@ import { getConfig } from './configLoader';
 import { spawnBullet, updateBullets, spawnExplosion, spawnSplit, showDamageNumber } from './bullet';
 import { spawnEnemy, spawnSwarmGroup, updateEnemies, killEnemy, pickEnemyType, enemyTypeOf } from './enemy';
 import { createUI, updateWall, updateWave, showUpgrade, showGameOver, showVictory, infoTxt } from './ui';
+import { initLaser, updateLaser } from './laser';
 
 (async () => {
   const cfg = getConfig();
@@ -49,6 +50,7 @@ import { createUI, updateWall, updateWave, showUpgrade, showGameOver, showVictor
   gameLayer.addChild(wallG);
 
   createUI();
+  initLaser();
 
   let lastTime = performance.now();
   let shootCD = 0;
@@ -129,6 +131,9 @@ import { createUI, updateWall, updateWave, showUpgrade, showGameOver, showVictor
 
     // ---- 出怪 ----
     if (waveActive) tickSpawn(dt);
+
+    // ---- 聚焦激光 ----
+    updateLaser(dt);
 
     // ---- 射击 ----
     shootCD -= dt;
