@@ -105,18 +105,18 @@ export function showUpgrade() {
     style: new TextStyle({ fontSize: 28, fill: '#ffd700', fontFamily: 'monospace', fontWeight: 'bold' }),
   });
   title.anchor.set(0.5);
-  title.position.set(GAME_W / 2, 180);
+  title.position.set(GAME_W / 2, 260);
   upgContainer.addChild(title);
 
-  const pw = 260,
-    ph = 150,
-    gap = 30;
+  const pw = 200,
+    ph = 160,
+    gap = 20;
   const tw = choices.length * pw + (choices.length - 1) * gap;
   const sx = (GAME_W - tw) / 2;
 
   choices.forEach((u: UpgradeDef, i: number) => {
     const cx = sx + i * (pw + gap) + pw / 2;
-    const cy = 380;
+    const cy = GAME_H * 0.55;
     const rc = u.rarity === 'epic' ? '#ff6b6b' : u.rarity === 'rare' ? '#5dade2' : '#bdc3c7';
     const card = new Graphics()
       .roundRect(-pw / 2, -ph / 2, pw, ph, 10)
