@@ -11,12 +11,6 @@ export default defineConfig({
         main: resolve(__dirname, 'index.html'),
         config: resolve(__dirname, 'config-panel/index.html'),
       },
-      external: ['pixi.js'],
-    },
-  },
-  resolve: {
-    alias: {
-      'pixi.js': resolve(__dirname, 'node_modules/pixi.js/lib/index.js'),
     },
   },
   server: {
