@@ -1,5 +1,5 @@
 import { Graphics, Text, TextStyle } from 'pixi.js';
-import type { Bullet } from './types';
+import type { Bullet, Enemy } from './types';
 import { GAME_W, GAME_H, PLAYER_Y, bullets, enemies, ctx, genId, gameLayer, app } from './state';
 import { killEnemy, nearestEnemy } from './enemy';
 
@@ -108,6 +108,43 @@ export function spawnExplosion(x: number, y: number, r: number, dmg: number) {
     if (life <= 0) {
       app!.ticker.remove(ticker);
       if (gameLayer && ring.parent) gameLayer.removeChild(ring);
+    }
+  };
+  app.ticker.add(ticker);
+}
+
+export function spawnShieldBreak(e: Enemy) {
+  if (!gameLayer || !app) return;
+  // 盾牌碎裂特效
+  const cx = e.x;
+  const cy = e.y;
+  const fragments: { g: Graphics; angle: number; dist: number }[] = [];
+  const numFragments = 8;
+
+  for (let i = 0; i < numFragments; i++) {
+    const angle = (i / numFragments) * Math.PI * 2 + Math.random() * 0.5;
+    const dist = e.size * 0.8 + Math.random() * e.size * 0.5;
+    const frag = new Graphics()
+      .circle(0, 0, 4 + Math.random() * 3)
+      .fill({ color: 0xaadfff });
+    frag.position.set(cx + Math.cos(angle) * dist, cy + Math.sin(angle) * dist);
+    gameLayer.addChild(frag);
+    fragments.push({ g: frag, angle, dist });
+  }
+
+  let life = 0.5;
+  const ticker = () => {
+    life -= 0.016;
+    for (const f of fragments) {
+      f.g.x = cx + Math.cos(f.angle) * f.dist * (life / 0.5);
+      f.g.y = cy + Math.sin(f.angle) * f.dist * (life / 0.5) + (0.5 - life) * 80;
+      f.g.alpha = life / 0.5;
+    }
+    if (life <= 0) {
+      app!.ticker.remove(ticker);
+      for (const f of fragments) {
+        if (gameLayer && f.g.parent) gameLayer.removeChild(f.g);
+      }
     }
   };
   app.ticker.add(ticker);

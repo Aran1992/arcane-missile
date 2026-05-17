@@ -17,7 +17,7 @@ import {
   setUiLayer,
 } from './state';
 import { getConfig } from './configLoader';
-import { spawnBullet, updateBullets, spawnExplosion, spawnSplit, showDamageNumber } from './bullet';
+import { spawnBullet, updateBullets, spawnExplosion, spawnSplit, showDamageNumber, spawnShieldBreak } from './bullet';
 import { spawnEnemy, spawnSwarmGroup, updateEnemies, killEnemy, pickEnemyType, enemyTypeOf } from './enemy';
 import { createUI, updateWall, updateWave, showUpgrade, showGameOver, showVictory, infoTxt } from './ui';
 import { initLaser, updateLaser } from './laser';
@@ -194,18 +194,26 @@ import { initLaser, updateLaser } from './laser';
         if (b.hitIds.has(e.id)) continue;
         if (Math.hypot(b.x - e.x, b.y - e.y) < b.size + e.size) {
           b.hitIds.add(e.id);
-          e.hp -= b.damage;
-          e.hitTimer = 0.1;
-          showDamageNumber(e.x, e.y, b.damage, 'bullet');
-          if (e.hp <= 0) killEnemy(e);
-          if (b.explode) spawnExplosion(b.x, b.y, b.explR, b.explDmg);
-          if (b.split && b.splitN > 0) spawnSplit(b, e.x, e.y, e.id);
-          if (b.pierce > 0) {
-            b.pierce--;
-          } else {
+          if (e.type === 'shielder' && !e.shieldBroken) {
+            // 盾牌没收子弹并碎裂
+            e.shieldBroken = true;
             b.alive = false;
             if (gameLayer && b.g.parent) gameLayer.removeChild(b.g);
-            break;
+            spawnShieldBreak(e);
+          } else {
+            e.hp -= b.damage;
+            e.hitTimer = 0.1;
+            showDamageNumber(e.x, e.y, b.damage, 'bullet');
+            if (e.hp <= 0) killEnemy(e);
+            if (b.explode) spawnExplosion(b.x, b.y, b.explR, b.explDmg);
+            if (b.split && b.splitN > 0) spawnSplit(b, e.x, e.y, e.id);
+            if (b.pierce > 0) {
+              b.pierce--;
+            } else {
+              b.alive = false;
+              if (gameLayer && b.g.parent) gameLayer.removeChild(b.g);
+              break;
+            }
           }
         }
       }

@@ -48,6 +48,8 @@ export interface Enemy {
   spawnInterval: number;
   /** 分裂怪：死亡时分裂的数量 */
   splitCount: number;
+  /** 盾牌兵：盾牌是否已碎 */
+  shieldBroken: boolean;
 }
 
 export interface EnemyType {

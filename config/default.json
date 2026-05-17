@@ -36,14 +36,15 @@
     "hpGrowth": 0.12,
     "speedGrowth": 0.04,
     "wallDps": 2,
-    "unlockAtWave": [1, 3, 5, 8, 12, 18],
+    "unlockAtWave": [1, 3, 5, 8, 12, 18, 5],
     "types": [
       { "id": "slime",   "hp": 20,  "speed": 55,  "dmg": 5,  "size": 14, "score": 10, "color": "#e74c3c" },
       { "id": "bat",     "hp": 12,  "speed": 110, "dmg": 3,  "size": 10, "score": 8,  "color": "#9b59b6" },
       { "id": "swarm",   "hp": 6,   "speed": 140, "dmg": 2,  "size": 6,  "score": 3,  "color": "#ff6b6b" },
       { "id": "knight",  "hp": 80,  "speed": 30,  "dmg": 10, "size": 20, "score": 25, "color": "#2c3e50" },
       { "id": "splitter","hp": 35,  "speed": 60,  "dmg": 8,  "size": 16, "score": 20, "color": "#1abc9c" },
-      { "id": "mother",  "hp": 150, "speed": 25,  "dmg": 5,  "size": 26, "score": 40, "color": "#8e44ad" }
+      { "id": "mother",  "hp": 150, "speed": 25,  "dmg": 5,  "size": 26, "score": 40, "color": "#8e44ad" },
+      { "id": "shielder","hp": 60,  "speed": 45,  "dmg": 6,  "size": 18, "score": 22, "color": "#2E86C1" }
     ]
   },
   "exp": {

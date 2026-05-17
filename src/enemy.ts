@@ -72,8 +72,16 @@ function createEnemyGraphic(size: number, color: number, type: string): Graphics
     g.closePath().fill({ color });
     g.circle(0, 0, r * 0.4).fill({ color: 0xffffff, alpha: 0.15 });
     g.circle(0, 0, r * 0.2).fill({ color: 0xffffff, alpha: 0.3 });
-  } else {
+  } else if (type === 'shielder') {
+    // 圆形身体 + 前方半弧盾牌
     g.circle(0, 0, size).fill({ color });
+    // 盾牌半弧（朝下/朝玩家方向，即π/2方向）
+    const shieldR = size * 1.1;
+    g.arc(0, 0, shieldR, (Math.PI * 1) / 6, (Math.PI * 5) / 6).stroke({ color: 0xaadfff, width: 3 });
+    // 盾面填充（半透明）
+    g.arc(0, 0, shieldR * 0.9, (Math.PI * 1) / 6, (Math.PI * 5) / 6).fill({ color: 0xaadfff, alpha: 0.15 });
+    // 中心高光
+    g.circle(0, 0, size * 0.3).fill({ color: 0xffffff, alpha: 0.2 });
   }
   return g;
 }
@@ -109,6 +117,7 @@ export function spawnEnemy(ti: number, wave: number) {
     spawnTimer: 2.5,
     spawnInterval: 2.5,
     splitCount: t.id === 'splitter' ? 6 + Math.floor(Math.random() * 3) : 0,
+    shieldBroken: false,
   });
 }
 
@@ -150,6 +159,7 @@ export function spawnSwarmGroup(ti: number, wave: number, count: number) {
       isMini: true,
       spawnTimer: 0, spawnInterval: 0,
       splitCount: 0,
+      shieldBroken: false,
     });
   }
 }
@@ -179,6 +189,7 @@ function spawnSplitMinis(x: number, y: number, count: number) {
       isMini: true,
       spawnTimer: 0, spawnInterval: 0,
       splitCount: 0,
+      shieldBroken: false,
     });
   }
 }
@@ -211,6 +222,7 @@ function spawnMotherChildren(e: Enemy) {
       isMini: true,
       spawnTimer: 0, spawnInterval: 0,
       splitCount: 0,
+      shieldBroken: false,
     });
   }
 }
